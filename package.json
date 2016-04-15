@@ -1,0 +1,24 @@
+{
+    "name": "fxNetSocket",
+    "version": "0.1.1",
+    "private": true,
+    "dependencies": {
+    "debug": "^2.2.0"
+  },
+    "author": {
+        "name": "Benson Liao",
+        "email": "anaylst@gmail.com"
+  },
+    "contributors": [
+    {
+      "name": "Benson Liao",
+      "email": "anaylst@gmail.com"
+    }
+  ],
+    "license": "MIT",
+    "keywords": [],
+    "main": "index.js",
+    "engines": {
+        "node": ">= 0.12.0"
+  }
+}
