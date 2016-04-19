@@ -46,6 +46,9 @@ function FxOutdevs(fileName, procfile) {
 
     if (!procfile) {
         this._procfile = 'ffmpeg';
+    }else
+    {
+        this._procfile = procfile;
     }
 
     /*** Initialize ***/
