@@ -4,8 +4,7 @@
 var debug = require('debug')('Outdevs');
 var events = require('events');
 var util = require('util');
-var _fileName,
-    cp = require('child_process'),
+var cp = require('child_process'),
     spawn = cp.spawn;
 
 var avLog = {
@@ -34,7 +33,7 @@ util.inherits(FxOutdevs, events.EventEmitter);
 function FxOutdevs(fileName, procfile) {
 
     /*** Arguments ***/
-    _fileName = fileName;
+    this._fileName = fileName;
 
     this.running = false;
 
@@ -43,6 +42,8 @@ function FxOutdevs(fileName, procfile) {
     this.ffmpeg_pid = 0;
 
     this.STATUS = stdoutStatus.INIT;
+
+    this.keyframe = 0;
 
     if (!procfile) {
         this._procfile = 'ffmpeg';
@@ -72,7 +73,7 @@ FxOutdevs.prototype.init = function () {
         //    "-preset:v", "ultrafast", "-tune:v", "zerolatency", "-f", "h264", "pipe:1"];
         // -r set 10 fps for flv streaming source.
         // -- , "-pass", "1"
-        var params = ["-y", "-i", _fileName, "-loglevel", avLog.quiet, "-r", "10", "-b:v", "300k", "-b:a", "8k", "-bt", "10k","-pass", "1", "-vcodec", "libx264", "-coder", "0", "-bf", "0", "-timeout", "1", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", "pipe:1"];
+        var params = ["-y", "-i", this._fileName, "-loglevel", avLog.quiet, "-r", "10","-maxrate:v", "300k", "-b:v", "17500k", "-b:a", "8k", "-bt", "10k","-pass", "1", "-vcodec", "libx264", "-coder", "0", "-bf", "0", "-timeout", "1", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", "pipe:1"];
         var fmParams = " " + (params.toString()).replace(/[,]/g, " ");
         debug("ffmpeg " + fmParams);
 
@@ -86,6 +87,9 @@ FxOutdevs.prototype.init = function () {
 
         var streamDataHandler = function (chunk) {
             //debug("[OUTPUT] %d bytes", chunk.length);
+
+            // console.log("this.keyframe : ",self.keyframe++);
+
             try {
                 if (!(chunk && chunk.length)) {
                     throw new Error("[Error] - Data is NULL.");
@@ -117,6 +121,12 @@ FxOutdevs.prototype.init = function () {
         var stderrDataHanlder = function (buf) {
             var str = String(buf);
             debug('[INFO] stderr info::', str);
+            var info = str.match(/(\b\w+)=\s{0,}([\w:./]+)/g);
+
+            if (info) {
+                console.log(info[0].trim().split("="));
+            }
+            self.keyframe = 0;
             //  1. Network is unreachable
             //  2. Cannot open connection
         };
@@ -213,8 +223,8 @@ FxOutdevs.prototype.streamPipe = function (dest) {
 
 /** 定期紀錄child process 狀態 太多會busy **/
 function checkProccess(proc) {
-    logger.debug("[Debug] Child process ffmpeg '" + _fileName + "' start.");
-    logger.pollingWithProcess(proc,_fileName, 60000); // 1 min
+    logger.debug("[Debug] Child process ffmpeg '" + this._fileName + "' start.");
+    logger.pollingWithProcess(proc, this._fileName, 60000); // 1 min
 };
 
 module.exports = exports = FxOutdevs;
