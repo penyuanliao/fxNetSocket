@@ -223,8 +223,8 @@ FxOutdevs.prototype.streamPipe = function (dest) {
 
 /** 定期紀錄child process 狀態 太多會busy **/
 function checkProccess(proc) {
-    logger.debug("[Debug] Child process ffmpeg '" + this._fileName + "' start.");
-    logger.pollingWithProcess(proc, this._fileName, 60000); // 1 min
+    // logger.debug("[Debug] Child process ffmpeg '" + this._fileName + "' start.");
+    // logger.pollingWithProcess(proc, this._fileName, 60000); // 1 min
 };
 
 module.exports = exports = FxOutdevs;
