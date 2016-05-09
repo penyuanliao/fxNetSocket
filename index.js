@@ -20,3 +20,7 @@ exports.daemon = exports.Daemon;
 
 exports.WSClient = require('./lib/FxWebSocketClient.js');
 exports.wsClient = exports.WSClient;
+
+exports.fxTCP = require('./lib/FxTCP.js');
+
+exports.clusterConstructor = require('./lib/clusterConstructor.js');
