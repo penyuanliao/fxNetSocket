@@ -26,7 +26,7 @@ const stdoutStatus = {
     'ERROR': 3
 };
 
-var logger = require('../lib/FxLogger.js');
+// var logger = require('../lib/FxLogger.js');
 
 util.inherits(FxOutdevs, events.EventEmitter);
 
@@ -133,7 +133,7 @@ FxOutdevs.prototype.init = function () {
 
         var stdoutCloseHandler = function(code) {
             debug(self.name + ' you are terminated.');
-            logger.debug("[Close] close_event - Child process exited with code " + code);
+            // logger.debug("[Close] close_event - Child process exited with code " + code);
             self.running = false;
             self.STATUS = stdoutStatus.CLOSE;
             self.emit('close', code);
@@ -150,18 +150,18 @@ FxOutdevs.prototype.init = function () {
             debug('[Debug] Hasta la vista, baby!');
             self.running = false;
             self.emit('exit');
-            logger.debug("[Exit] Exit_event - Child process exited ");
+            // logger.debug("[Exit] Exit_event - Child process exited ");
 
 
         };
         var readableHandler = function () {
             debug('[Debug] readable first stream in here.');
-            logger.debug("[readable] readable_evnt - readable first stream in here.");
+            // logger.debug("[readable] readable_evnt - readable first stream in here.");
         };
 
         var streamErrorHandler = function(err) {
             debug("[ERROR] Some stream error: ", err);
-            logger.debug("[streamError] Some stream error: " + err);
+            // logger.debug("[streamError] Some stream error: " + err);
             self.running = false;
             self.STATUS = stdoutStatus.ERROR;
             self.emit('error');
@@ -182,7 +182,7 @@ FxOutdevs.prototype.init = function () {
     }
     catch (e) {
         debug('[ERROR]createServer::', e);
-        logger.debug("FxOutdevs Exception ERRORS: " + e);
+        // logger.debug("FxOutdevs Exception ERRORS: " + e);
     }
 };
 
