@@ -6,7 +6,7 @@ var events = require('events');
 var util = require('util');
 var cp = require('child_process'),
     spawn = cp.spawn;
-
+const frameMaximum = 256 * 1024;
 var avLog = {
     "quiet"  : -8,
     "panic"  :  0,
@@ -64,6 +64,7 @@ FxOutdevs.prototype.init = function () {
     try {
         var self = this;
         self.running = true;
+        self.doDropPacket = false;
         //
         //var params = ["-y", "-re",
         //    "-i", _fileName,
@@ -108,8 +109,13 @@ FxOutdevs.prototype.init = function () {
                     self.emit('streamData',stream_data.toString('base64'));
                     stream_data.writeUIntLE(0, 0, stream_data.length);
                     stream_data = ""; // reset stream
+                    this.doDropPacket = false; // drop large data!!!
                 }else {
-
+                    if ( frameMaximum < stream_data.length) {
+                        stream_data = 0;
+                        this.doDropPacket = true; // drop large data!!!
+                        console.error(new Date(), "stream data is large size.");
+                    }
                 }
             }
             catch (e) {
