@@ -7,6 +7,25 @@ var util = require('util');
 var cp = require('child_process'),
     spawn = cp.spawn;
 const frameMaximum = 256 * 1024;
+//MaxDpbMbs 直接表示了對播放設備的解碼性能要求值越高，代表播放設備解碼性能要求越高，相對的輸出影片的壓縮率也越越高 level:v
+var h264Level = {
+    "l396":"1",
+    "l396H":"1b",
+    "l900":"1.1",
+    "l2376L":"1.2",
+    "l2376M":"1.3",
+    "l2376H":"2",
+    "l4752":"2.1",
+    "l8100":"3",
+    "l18000":"3.1",
+    "l20480":"4",
+    "l32768":"4.1",
+    "l34816":"4.2",
+    "l110400":"5",
+    "l184320":"5.1",
+    "l184320":"5.2"
+}
+
 var avLog = {
     "quiet"  : -8,
     "panic"  :  0,
@@ -30,7 +49,7 @@ const stdoutStatus = {
 
 util.inherits(FxOutdevs, events.EventEmitter);
 
-function FxOutdevs(fileName, procfile) {
+function FxOutdevs(fileName, procfile, customParams) {
 
     /*** Arguments ***/
     this._fileName = fileName;
@@ -41,9 +60,13 @@ function FxOutdevs(fileName, procfile) {
 
     this.ffmpeg_pid = 0;
 
+    this._encode = true;
+    this._encodeStr = 'base64';
+
     this.STATUS = stdoutStatus.INIT;
 
     this.keyframe = 0;
+    // this.currFrameBuf = [];
 
     if (!procfile) {
         this._procfile = 'ffmpeg';
@@ -56,11 +79,11 @@ function FxOutdevs(fileName, procfile) {
 
     events.EventEmitter.call(this);
 
-    this.init();
+    this.init(customParams);
 
 }
 
-FxOutdevs.prototype.init = function () {
+FxOutdevs.prototype.init = function (customParams) {
     try {
         var self = this;
         self.running = true;
@@ -74,7 +97,14 @@ FxOutdevs.prototype.init = function () {
         //    "-preset:v", "ultrafast", "-tune:v", "zerolatency", "-f", "h264", "pipe:1"];
         // -r set 10 fps for flv streaming source.
         // -- , "-pass", "1"
-        var params = ["-y", "-i", this._fileName, "-loglevel", avLog.quiet, "-r", "10","-maxrate:v", "300k", "-b:v", "300K", "-b:a", "8k", "-bt", "10k","-pass", "1", "-vcodec", "libx264", "-coder", "0", "-bf", "0", "-timeout", "1", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", "pipe:1"];
+        var fps = 10;
+        var maxrate = "300k";
+        if (typeof customParams != 'undefined') {
+            if (typeof customParams.fps === 'number') fps = customParams.fps;
+            if (typeof customParams.maxrate === 'string') maxrate = customParams.maxrate;
+        }
+
+        var params = ["-y", "-i", this._fileName, "-loglevel", avLog.info, "-r", fps,"-maxrate:v", maxrate, "-b:v", maxrate, "-b:a", "8k", "-bt", "10k","-pass", "1", "-vcodec", "libx264", "-coder", "0", "-bf", "0", "-timeout", "1", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", "pipe:1"];
         var fmParams = " " + (params.toString()).replace(/[,]/g, " ");
         debug("ffmpeg " + fmParams);
 
@@ -107,7 +137,7 @@ FxOutdevs.prototype.init = function () {
                     //self.streamdata = stream_data.toString('base64');
                     //debug("[Total] %d bytes", stream_data.length);
                     self.emit('streamData',stream_data.toString('base64'));
-                    stream_data.writeUIntLE(0, 0, stream_data.length);
+                    // self.currFrameBuf.push(stream_data);
                     stream_data = ""; // reset stream
                     this.doDropPacket = false; // drop large data!!!
                 }else {
@@ -126,13 +156,23 @@ FxOutdevs.prototype.init = function () {
 
         var stderrDataHanlder = function (buf) {
             var str = String(buf);
-            debug('[INFO] stderr info::', str);
+            // debug('[INFO] stderr info::', str);
             var info = str.match(/(\b\w+)=\s{0,}([\w:./]+)/g);
 
             if (info) {
-                console.log(info[0].trim().split("="));
+                // console.log(info[0].trim().split("="));
+
+                var frameArr = info[0].trim().split("=");
+                if (frameArr) {
+                    if (frameArr[0] == "frame") {
+                        self.keyframe = parseInt(frameArr[1].trim());
+                        // console.log('frame:%d', self.keyframe);
+                        // self.currFrameBuf = [];
+                    }
+                }
             }
-            self.keyframe = 0;
+
+
             //  1. Network is unreachable
             //  2. Cannot open connection
         };
@@ -225,6 +265,19 @@ FxOutdevs.prototype.streamByReadBase64 = function (callback) {
 /** ffmpeg command line then pipe. use stream.pipe to send incoming to a your stream object. **/
 FxOutdevs.prototype.streamPipe = function (dest) {
   this.ffmpeg.pipe(dest);
+};
+
+FxOutdevs.prototype.setEncodeVideo = function (encode) {
+  if (encode === 'base64') {
+      this._encode = true;
+      this._encodeStr = encode;
+  } else if (encode === 'hex' || encode === 16) {
+      this._encode = true;
+      this._encodeStr = "hex";
+  } else if (encode === '') {
+      this._encode = false;
+      this._encodeStr = "";
+  }
 };
 
 /** 定期紀錄child process 狀態 太多會busy **/
