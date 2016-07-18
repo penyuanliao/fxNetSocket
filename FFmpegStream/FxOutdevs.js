@@ -66,6 +66,7 @@ function FxOutdevs(fileName, procfile, customParams) {
     this.STATUS = stdoutStatus.INIT;
 
     this.keyframe = 0;
+    this.sliceType = "";
     // this.currFrameBuf = [];
 
     if (!procfile) {
@@ -97,6 +98,9 @@ FxOutdevs.prototype.init = function (customParams) {
         //    "-preset:v", "ultrafast", "-tune:v", "zerolatency", "-f", "h264", "pipe:1"];
         // -r set 10 fps for flv streaming source.
         // -- , "-pass", "1"
+        // "-crf", "22" 視頻質量
+        // , "-x264opts", "ref=1:bframes=2:frameref=1"
+        // i,p,p..i 數量
         var fps = 10;
         var maxrate = "300k";
         if (typeof customParams != 'undefined') {
@@ -104,7 +108,7 @@ FxOutdevs.prototype.init = function (customParams) {
             if (typeof customParams.maxrate === 'string') maxrate = customParams.maxrate;
         }
 
-        var params = ["-y", "-i", this._fileName, "-loglevel", avLog.info, "-r", fps,"-maxrate:v", maxrate, "-b:v", maxrate, "-b:a", "8k", "-bt", "10k","-pass", "1", "-vcodec", "libx264", "-coder", "0", "-bf", "0", "-timeout", "20000", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", "pipe:1"];
+        var params = ["-y", "-i", this._fileName, "-loglevel", avLog.quiet, "-r", fps,"-maxrate:v", maxrate, "-b:v", maxrate, "-b:a", "8k", "-g", "100", "-bt", "10k","-pass", "1", "-vcodec", "libx264", "-coder", "0", "-bf", "0", "-timeout", "20000", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", "pipe:1"];
         var fmParams = " " + (params.toString()).replace(/[,]/g, " ");
         debug("ffmpeg " + fmParams);
 
@@ -128,15 +132,18 @@ FxOutdevs.prototype.init = function (customParams) {
                 self.running = true;
                 self.STATUS = stdoutStatus.OPEN;
                 // Confirm Buffer do reset
-                if (stream_data == "")
+                if (stream_data == ""){
                     stream_data = new Buffer(chunk);
-                else
+                }
+                else{
                     stream_data = Buffer.concat([stream_data, chunk]);
+                }
+
                 // CHECK stdout cmdline單列指令長度是否已經是8192(win平台不確定)
                 if (chunk.length < 8192) {
                     //self.streamdata = stream_data.toString('base64');
                     //debug("[Total] %d bytes", stream_data.length);
-                    self.emit('streamData',stream_data.toString('base64'));
+                    self.emit('streamData',stream_data.toString('base64'), {keyframe: self.keyframe, sliceType:self.sliceType});
                     // self.currFrameBuf.push(stream_data);
                     stream_data = ""; // reset stream
                     this.doDropPacket = false; // drop large data!!!
@@ -147,6 +154,7 @@ FxOutdevs.prototype.init = function (customParams) {
                         console.error(new Date(), "stream data is large size.");
                     }
                 }
+
             }
             catch (e) {
                 debug("Stream::", e);
@@ -159,6 +167,8 @@ FxOutdevs.prototype.init = function (customParams) {
             // debug('[INFO] stderr info::', str);
             var info = str.match(/(\b\w+)=\s{0,}([\w:./]+)/g);
 
+            if (str.indexOf("Slice:I") != -1) self.sliceType = "I";
+            if (str.indexOf("Slice:P") != -1) self.sliceType = "P";
             if (info) {
                 // console.log(info[0].trim().split("="));
 
@@ -166,7 +176,7 @@ FxOutdevs.prototype.init = function (customParams) {
                 if (frameArr) {
                     if (frameArr[0] == "frame") {
                         self.keyframe = parseInt(frameArr[1].trim());
-                        // console.log('frame:%d', self.keyframe);
+                        //console.log('frame:%d', self.keyframe);
                         // self.currFrameBuf = [];
                     }
                 }

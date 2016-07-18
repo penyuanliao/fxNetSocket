@@ -89,6 +89,12 @@ FFmpeg Configure
 // -timeout 10
 ## 說明 : 重新連線延遲
 
+// -g (x264: "-x264opts keyint=250")
+## 說明 : I-Frame 中間P-Frame 數量
+## 預設 : 250
+
+
+
 // 影像正常解碼問題
 // http://stackoverflow.com/questions/18243810/handling-chunked-responses-from-process-stdout-data-event
 
