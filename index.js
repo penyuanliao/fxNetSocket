@@ -1,5 +1,3 @@
-
-
 exports.NetCoonection = require("./lib/FxConnection");
 exports.netConnection = exports.NetCoonection;
 
@@ -24,3 +22,5 @@ exports.wsClient = exports.WSClient;
 exports.fxTCP = require('./lib/FxTCP.js');
 
 exports.clusterConstructor = require('./lib/clusterConstructor.js');
+
+exports.nconf = require('./lib/Fxnconf.js');
