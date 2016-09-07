@@ -298,7 +298,7 @@ FxOutdevs.prototype.setEncodeVideo = function (encode) {
   }
 };
 
-libvp62Srv.prototype.setupFPS = function () {
+FxOutdevs.prototype.setupFPS = function () {
     var self = this;
     this.getTickTime = new Date().getTime();
     this.lastTime = this.getTickTime;
@@ -318,10 +318,10 @@ libvp62Srv.prototype.setupFPS = function () {
 
 
 };
-libvp62Srv.prototype.getFPS = function () {
+FxOutdevs.prototype.getFPS = function () {
     return this.FPS;
 };
-libvp62Srv.prototype.StopFPS = function () {
+FxOutdevs.prototype.StopFPS = function () {
     clearTimeout(this.fpsObj);
 };
 
