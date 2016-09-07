@@ -7,6 +7,7 @@ var util = require('util');
 var cp = require('child_process'),
     spawn = cp.spawn;
 const frameMaximum = 256 * 1024;
+const updateTime = 1000; //FPS循環時間
 //MaxDpbMbs 直接表示了對播放設備的解碼性能要求值越高，代表播放設備解碼性能要求越高，相對的輸出影片的壓縮率也越越高 level:v
 var h264Level = {
     "l396":"1",
@@ -68,6 +69,12 @@ function FxOutdevs(fileName, procfile, customParams) {
     this.keyframe = 0;
     this.sliceType = "";
     // this.currFrameBuf = [];
+
+    //FPS
+    this.FPS = 0;
+    this.frames = 0;
+    this.getTickTime;
+    this.lastTime;
 
     if (!procfile) {
         this._procfile = 'ffmpeg';
@@ -146,6 +153,7 @@ FxOutdevs.prototype.init = function (customParams) {
                     self.emit('streamData',stream_data.toString('base64'), {keyframe: self.keyframe, sliceType:self.sliceType});
                     // self.currFrameBuf.push(stream_data);
                     stream_data = ""; // reset stream
+                    self.frames++;
                     this.doDropPacket = false; // drop large data!!!
                 }else {
                     if ( frameMaximum < stream_data.length) {
@@ -289,6 +297,34 @@ FxOutdevs.prototype.setEncodeVideo = function (encode) {
       this._encodeStr = "";
   }
 };
+
+libvp62Srv.prototype.setupFPS = function () {
+    var self = this;
+    this.getTickTime = new Date().getTime();
+    this.lastTime = this.getTickTime;
+
+    function fps_loop() {
+        self.fpsObj = setTimeout(function () {
+            self.getTickTime = new Date().getTime();
+            if ( (self.getTickTime - self.lastTime) > updateTime) {
+                self.FPS = (self.frames / (self.getTickTime - self.lastTime) * 1000);
+                self.frames = 0;
+                self.lastTime = this.getTickTime;
+                console.log('+ FPS:%s', self.FPS);
+            }
+
+        }, 0);
+    }
+
+
+};
+libvp62Srv.prototype.getFPS = function () {
+    return this.FPS;
+};
+libvp62Srv.prototype.StopFPS = function () {
+    clearTimeout(this.fpsObj);
+};
+
 
 /** 定期紀錄child process 狀態 太多會busy **/
 function checkProccess(proc) {
