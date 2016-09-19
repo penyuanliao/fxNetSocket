@@ -42,6 +42,29 @@ srv.on('httpUpgrade', function (req, client, head) {
 
 ```
 
+### FxLogger example
+
+* logFileEnabled: save to file.
+* consoleEnabled: locale log console to stdio.
+* level: 顯示等級. ex:`'quiet', 'error', 'warning', 'info', 'debug', 'trace'`
+* dateFormat: 時間格式. ex:`'[yyyy-MM-dd hh:mm:ss]'`
+* fileName: 檔案名稱.
+* filePath: 檔案位置.
+* maximumFileSize: 檔案大小.
+* id: remote log to identify resources.
+* remoteEnabled: remote log console to socket.
+
+```js
+
+const NSLog = require('fxNetSocket').logger.getInstance();
+
+NSLog.configure({logFileEnabled:true, consoleEnabled:true, level:'trace', dateFormat:'[yyyy-MM-dd hh:mm:ss]',fileName:fileName,filePath:__dirname+"/historyLog", maximumFileSize: 1024 * 1024 * 100,
+id:process.argv[2], remoteEnabled: false});
+
+NSLog.log('trace', 'hello world!');
+
+```
+
 ### Daemon example
 ```js
 
