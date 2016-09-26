@@ -23,4 +23,5 @@ exports.fxTCP = require('./lib/FxTCP.js');
 
 exports.clusterConstructor = require('./lib/clusterConstructor.js');
 
-exports.nconf = require('./lib/Fxnconf.js');
+exports.getConfig = require('./lib/Fxnconf.js').getConfig;
+exports.getConfiguration = require('./lib/Fxnconf.js').getConfiguration;
