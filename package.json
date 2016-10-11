@@ -1,27 +1,27 @@
 {
-    "name": "fxNetSocket",
-    "version": "0.1.5",
-    "private": true,
-    "dependencies": {
+  "name": "fxNetSocket",
+  "version": "0.1.7",
+  "private": true,
+  "dependencies": {
     "debug": "^2.2.0"
   },
-    "author": {
-        "name": "Benson Liao",
-        "email": "anaylst@gmail.com"
+  "author": {
+    "name": "Benson Liao",
+    "email": "anaylst@gmail.com"
   },
-    "contributors": [
+  "contributors": [
     {
       "name": "Benson Liao",
       "email": "anaylst@gmail.com"
     }
   ],
-    "license": "MIT",
-    "keywords": [],
-    "main": "index.js",
-    "engines": {
-        "node": ">= 0.12.0"
+  "license": "MIT",
+  "keywords": [],
+  "main": "index.js",
+  "engines": {
+    "node": ">= 0.12.0"
   },"scripts": {
-    "testUtility":"mocha test-utility.js"
-  }
+  "testUtility":"mocha test-utility.js"
+}
 
 }
