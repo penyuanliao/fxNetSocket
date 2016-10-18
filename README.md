@@ -68,5 +68,18 @@ NSLog.log('trace', 'hello world!');
 ### Daemon example
 ```js
 
-
+const daemon = require('Daemon');
+var proc = new daemon('file.js', [args], {env:env});
+// start child process 
+proc.init();
+// by send message 
+proc.send(message[, sendHandle[,options]][,callback])
+// by restart
+// import call need 1.0 sec reboot
+proc.restart();
+// close the IPC channel call event
+proc.stop();
+// command lie kill proc 
+proc.quiet();
 ```
+### FxWebSocketClient example
