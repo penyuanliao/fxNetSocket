@@ -3,7 +3,7 @@
  */
 const assert = require('assert');
 const utitlies = require('../lib/FxUtility.js');
-const url = "/fxlive/Hall/service.h1?gameType=5050"
+const url = "/fxlive/Hall/service.h1?gameType=5050";
 describe('This function parses a URL('+url+')', function() {
     describe('Show the Path', function() {
         it('should return array[0] a string(/fxlive/Hall/service.h1)', function() {
