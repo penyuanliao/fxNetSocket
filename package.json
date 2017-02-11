@@ -1,6 +1,6 @@
 {
   "name": "fxNetSocket",
-  "version": "0.1.8",
+  "version": "1.2.0",
   "private": true,
   "dependencies": {
     "debug": "^2.2.0",
