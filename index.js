@@ -23,5 +23,8 @@ exports.fxTCP = require('./lib/FxTCP.js');
 
 exports.clusterConstructor = require('./lib/clusterConstructor.js');
 
+exports.cbConnect = require('./lib/cbConnect.js');
+exports.CBConnect = require('./lib/cbConnect.js');
+
 exports.getConfig = require('./lib/Fxnconf.js').getConfig;
 exports.getConfiguration = require('./lib/Fxnconf.js').getConfiguration;
