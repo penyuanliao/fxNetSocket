@@ -68,7 +68,7 @@ NSLog.log('trace', 'hello world!');
 ### Daemon example
 ```js
 
-const daemon = require('Daemon');
+const daemon = require('fxNetSocket').daemon;
 var proc = new daemon('file.js', [args], {env:env});
 // start child process 
 proc.init();
@@ -82,4 +82,49 @@ proc.stop();
 // command lie kill proc 
 proc.quiet();
 ```
+### FxTCP example
+```js
+
+const tcp = new require('fxNetSocket').fxTCP();
+
+const options = {
+    'host': '0.0.0.0',
+    'port': 80,
+    'closeWaitTime':5000, // Setting close_wait timeout
+    'backlog': 511
+}
+
+tcp.createServer(options);
+
+tcp.on('onRead', function (nread, buffer, handle) {
+    // Client to use the request Connections.
+    // handle.mode
+    // handle.wsProtocol
+    // handle.namespace
+
+});
+
+```
 ### FxWebSocketClient example
+```js
+
+const wsClient = require('fxNetSocket').WSClient;
+var option = {
+  "binaryType":"arraybuffer"
+};
+var ws = new wsClient(socket, connectHandler);
+function connectHandler() {
+  // connection
+
+  ws.on('data', function (data) {
+    //console.log('Data Event is received ws-packet Stream.');
+  });
+  ws.on('message', function (msg) {
+    //console.log('Message is decode ws-packet Stream on:', msg);
+  });
+}
+function send(json) {
+    ws.write(json);
+}
+
+```
