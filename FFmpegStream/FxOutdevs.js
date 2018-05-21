@@ -110,12 +110,13 @@ FxOutdevs.prototype.init = function (customParams) {
         // i,p,p..i 數量
         var fps = 10;
         var maxrate = "300k";
+        var vcodec = "libx264";
         if (typeof customParams != 'undefined') {
             if (typeof customParams.fps === 'number') fps = customParams.fps;
             if (typeof customParams.maxrate === 'string') maxrate = customParams.maxrate;
+            if (typeof customParams.vcodec === 'string') vcodec = customParams.vcodec;
         }
-
-        var params = ["-y", "-i", this._fileName, "-loglevel", avLog.quiet, "-r", fps,"-maxrate:v", maxrate, "-b:v", maxrate, "-b:a", "8k", "-g", "100", "-bt", "10k","-pass", "1", "-vcodec", "libx264", "-coder", "0", "-bf", "0", "-timeout", "20000", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", "pipe:1"];
+        var params = ["-y", "-i", this._fileName, "-loglevel", avLog.quiet, "-r", fps,"-maxrate:v", maxrate, "-b:v", maxrate, "-b:a", "8k", "-g", "100", "-bt", "10k","-pass", "1", "-bufsize", "0k", "-vcodec", vcodec, "-coder", "0", "-bf", "0", "-timeout", "20000", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", "pipe:1"];
         var fmParams = " " + (params.toString()).replace(/[,]/g, " ");
         debug("ffmpeg " + fmParams);
 
@@ -282,20 +283,20 @@ FxOutdevs.prototype.streamByReadBase64 = function (callback) {
 };
 /** ffmpeg command line then pipe. use stream.pipe to send incoming to a your stream object. **/
 FxOutdevs.prototype.streamPipe = function (dest) {
-  this.ffmpeg.pipe(dest);
+    this.ffmpeg.pipe(dest);
 };
 
 FxOutdevs.prototype.setEncodeVideo = function (encode) {
-  if (encode === 'base64') {
-      this._encode = true;
-      this._encodeStr = encode;
-  } else if (encode === 'hex' || encode === 16) {
-      this._encode = true;
-      this._encodeStr = "hex";
-  } else if (encode === '') {
-      this._encode = false;
-      this._encodeStr = "";
-  }
+    if (encode === 'base64') {
+        this._encode = true;
+        this._encodeStr = encode;
+    } else if (encode === 'hex' || encode === 16) {
+        this._encode = true;
+        this._encodeStr = "hex";
+    } else if (encode === '') {
+        this._encode = false;
+        this._encodeStr = "";
+    }
 };
 
 FxOutdevs.prototype.setupFPS = function () {
