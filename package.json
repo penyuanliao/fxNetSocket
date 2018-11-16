@@ -3,7 +3,9 @@
   "version": "1.2.2",
   "private": true,
   "dependencies": {
-    "debug": "^2.2.0",
+    "debug": "^2.2.0"
+  },
+  "devDependencies": {
     "mocha": "^3.1.2"
   },
   "author": {
