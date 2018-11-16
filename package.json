@@ -10,14 +10,8 @@
   },
   "author": {
     "name": "Benson Liao",
-    "email": "anaylst@gmail.com"
+    "email": "anaylst@hotmail.com"
   },
-  "contributors": [
-    {
-      "name": "Benson Liao",
-      "email": "anaylst@gmail.com"
-    }
-  ],
   "license": "MIT",
   "keywords": [],
   "main": "index.js",
