@@ -1,12 +1,14 @@
 /**
  * Created by Benson.Liao on 15/12/8.
  */
-var debug = require('debug')('Outdevs');
-var events = require('events');
-var util = require('util');
-var cp = require('child_process'),
+const debug = require('debug')('Outdevs');
+const events = require('events');
+const util = require('util');
+const http = require('http');
+const net = require('net');
+const cp = require('child_process'),
     spawn = cp.spawn;
-const frameMaximum = 256 * 1024;
+const frameMaximum = 10 * 1024 * 1024;
 const updateTime = 1000; //FPS循環時間
 //MaxDpbMbs 直接表示了對播放設備的解碼性能要求值越高，代表播放設備解碼性能要求越高，相對的輸出影片的壓縮率也越越高 level:v
 var h264Level = {
@@ -87,7 +89,64 @@ function FxOutdevs(fileName, procfile, customParams) {
 
     events.EventEmitter.call(this);
 
-    this.init(customParams);
+    if (typeof customParams != "undefined" && typeof customParams.protocol == "string" && (customParams.protocol == "http" || customParams.protocol == "tcp")) {
+        const self = this;
+        const proto = customParams.protocol;
+        let proxy;
+        if (proto == "http")
+            proxy = http.createServer(onHttpConnection).listen(onListening);
+        else if (proto == "tcp")
+            proxy = net.createServer(onConnection).listen(onListening);
+
+        let maxChunk = 0; //拆包問題
+        let pervLen  = 0; //前一包大小
+        let prefix   = ""; //擋頭
+        let segments = Buffer.from([]);
+        function onHttpConnection(req, res) {
+            req.on("data", function (chunk) {
+                prefix = chunk.readUInt32BE(0);
+                if (prefix == 0x000001) {
+                    self.emit('streamData',(self._encode) ? segments.toString('base64') : segments);
+                    segments = Buffer.from(chunk);
+                } else {
+                    segments = Buffer.concat([segments, chunk], segments.length + chunk.length);
+                }
+                pervLen = chunk.length;
+            });
+            req.on("end", function () {
+                res.end();
+            })
+            proxy.close();
+        }
+        function onConnection(socket) {
+            socket.on("data", function (chunk) {
+                prefix = chunk.readUInt32BE(0);
+                // console.log(prefix, pervLen, chunk.length, chunk.readUInt32BE(0));
+                if (prefix == 0x000001) {
+                    self.emit('streamData',(self._encode) ? segments.toString('base64') : segments);
+                    segments = Buffer.from(chunk);
+                } else {
+                    segments = Buffer.concat([segments, chunk], segments.length + chunk.length);
+                }
+                pervLen = chunk.length;
+            });
+            socket.on("end", function () {
+                socket.end();
+            })
+            proxy.close();
+        }
+
+        function onListening() {
+            if (proto == "http")
+                customParams.output = "http://127.0.0.1:" + proxy.address().port;
+            else
+                customParams.output = "tcp://127.0.0.1:" + proxy.address().port;
+            console.log("listening", customParams.output);
+            self.init(customParams);
+        }
+    } else {
+        this.init(customParams);
+    }
 
 }
 
@@ -111,12 +170,16 @@ FxOutdevs.prototype.init = function (customParams) {
         var fps = 10;
         var maxrate = "300k";
         var vcodec = "libx264";
+        var output = "pipe:1";
         if (typeof customParams != 'undefined') {
             if (typeof customParams.fps === 'number') fps = customParams.fps;
             if (typeof customParams.maxrate === 'string') maxrate = customParams.maxrate;
             if (typeof customParams.vcodec === 'string') vcodec = customParams.vcodec;
+            if (typeof customParams.encode === "boolean") self.setEncodeVideo("");
+            if (typeof customParams.encode === "string") self.setEncodeVideo(customParams.encode);
+            if (typeof customParams.output === "string" && customParams.output != "") output = customParams.output;
         }
-        var params = ["-y", "-i", this._fileName, "-loglevel", avLog.quiet, "-r", fps,"-maxrate:v", maxrate, "-b:v", maxrate, "-b:a", "8k", "-g", "100", "-bt", "10k","-pass", "1", "-bufsize", "0k", "-vcodec", vcodec, "-coder", "0", "-bf", "0", "-timeout", "20000", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", "pipe:1"];
+        var params = ["-y", "-i", this._fileName, "-loglevel", avLog.quiet, "-r", fps,"-maxrate:v", maxrate, "-b:v", maxrate, "-b:a", "8k", "-g", "100", "-bt", "10k","-pass", "1", "-bufsize", "0k", "-vcodec", vcodec, "-coder", "0", "-bf", "0", "-timeout", "20000", "-flags", "-loop", "-wpredp", "0", "-an", "-preset:v", "ultrafast", "-tune", "zerolatency","-level:v", "5.2", "-f", "h264", output];
         var fmParams = " " + (params.toString()).replace(/[,]/g, " ");
         debug("ffmpeg " + fmParams);
 
@@ -151,22 +214,24 @@ FxOutdevs.prototype.init = function (customParams) {
                 if (chunk.length < 8192) {
                     //self.streamdata = stream_data.toString('base64');
                     //debug("[Total] %d bytes", stream_data.length);
-                    self.emit('streamData',stream_data.toString('base64'), {keyframe: self.keyframe, sliceType:self.sliceType});
+                    self.emit('streamData',(self._encode) ? stream_data.toString('base64') : stream_data, {keyframe: self.keyframe, sliceType:self.sliceType});
                     // self.currFrameBuf.push(stream_data);
                     stream_data = ""; // reset stream
                     self.frames++;
                     this.doDropPacket = false; // drop large data!!!
                 }else {
                     if ( frameMaximum < stream_data.length) {
-                        stream_data = 0;
+                        // stream_data = 0;
                         this.doDropPacket = true; // drop large data!!!
-                        console.error(new Date(), "stream data is large size.");
+                        console.error(new Date(), "stream data is large size.", frameMaximum, stream_data.length);
+                        stream_data = 0;
                     }
                 }
 
             }
             catch (e) {
                 debug("Stream::", e);
+                stream_data = "";
             }
 
         };
