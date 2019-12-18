@@ -7,6 +7,9 @@ exports.stdoutStream = exports.StdoutStream;
 exports.Parser = require('./lib/FxParser.js');
 exports.parser = exports.Parser;
 
+exports.ParseHeader = require('./lib/FxParser.js').parseHeader;
+exports.parseHeader = exports.ParseHeader ;
+
 exports.Utilities = require('./lib/FxUtility.js');
 exports.utilities = exports.Utilities;
 
@@ -19,7 +22,7 @@ exports.daemon = exports.Daemon;
 exports.WSClient = require('./lib/FxWebSocketClient.js');
 exports.wsClient = exports.WSClient;
 
-exports.FxWebSocket = require("./FxWebSocket.js");
+exports.FxWebSocket = require("./lib/FxWebSocket.js");
 exports.fxWebSocket = exports.FxWebSocket;
 
 exports.fxTCP = require('./lib/FxTCP.js');
