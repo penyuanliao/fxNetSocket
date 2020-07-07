@@ -204,7 +204,7 @@ FxOutdevs.prototype.init = function (customParams) {
                 self.STATUS = stdoutStatus.OPEN;
                 // Confirm Buffer do reset
                 if (stream_data == ""){
-                    stream_data = new Buffer(chunk);
+                    stream_data = Buffer.from(chunk);
                 }
                 else{
                     stream_data = Buffer.concat([stream_data, chunk]);
