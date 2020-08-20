@@ -1,4 +1,9 @@
-exports.NetCoonection = require("./lib/FxConnection");
+/**
+ * 網路連線模組
+ * @file 網路連線模組
+ * @requires FxConnection
+ */
+exports.NetCoonection = require("./lib/FxConnection.js");
 exports.netConnection = exports.NetCoonection;
 
 exports.StdoutStream = require('./FFmpegStream/FxOutdevs.js');
