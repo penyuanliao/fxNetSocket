@@ -39,3 +39,5 @@ exports.clusterConstructor = require('./lib/clusterConstructor.js');
 
 exports.getConfig = require('./lib/Fxnconf.js').getConfig;
 exports.getConfiguration = require('./lib/Fxnconf.js').getConfiguration;
+
+exports.ClientElasticsearch = require("./lib/ClientElasticsearch.js")
